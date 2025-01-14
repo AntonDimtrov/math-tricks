@@ -25,7 +25,7 @@ struct Player {
 // global variables
 int rows = 0, cols = 0;
 Player p1, p2;
-
+int currentPlayer = 1;
 
 
 void setColor(int bgColor, int textColor = DEFAULT_TEXT) {
@@ -44,7 +44,7 @@ void resetColor() {
 #endif
 }
 
-Cell** initializeBoard(int rows, int cols) {
+Cell** initializeBoard() {
     Cell** board = new Cell*[rows];
     for (int i = 0; i < rows; i++) {
         board[i] = new Cell[cols];
@@ -76,7 +76,11 @@ void printCellValue(const Cell& cell) {
     }
 }
 
-void displayBoard(Cell** board, int rows, int cols) {
+void switchPlayer() {
+    currentPlayer = currentPlayer == 1 ? 2 : 1;
+}
+
+void displayBoard(Cell** board) {
     for (int j = 0; j < cols; ++j) {
         cout << "+------";
     }
@@ -114,6 +118,69 @@ void displayBoard(Cell** board, int rows, int cols) {
     }
 }
 
+bool isValidMove(Cell** board, int x, int y) {
+    return x >= 0 && x < rows && y >= 0 && y < cols && !board[x][y].isVisited;
+}
+
+bool hasValidMoves(Cell** board, int x, int y) {
+    int dx[] = {-1, 1, 0, 0, -1, -1, 1, 1};
+    int dy[] = {0, 0, -1, 1, -1, 1, -1, 1};
+    for (int i = 0; i < 8; ++i) {
+        if (isValidMove(board, x + dx[i], y + dy[i])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+void makeMove(Cell** board, Player& p, string direction) {
+
+    
+    int dx = 0, dy = 0;
+        if (direction == "u") dx = -1;
+        else if (direction == "d") dx = 1;
+        else if (direction == "r") dy = 1;
+        else if (direction == "l") dy = -1;
+        else if (direction == "ur") dx = -1, dy = 1;
+        else if (direction == "ul") dx = -1, dy = -1;
+        else if (direction == "dr") dx = 1, dy = 1;
+        else if (direction == "dl") dx = 1, dy = -1;
+
+        int nx = p.x + dx;
+        int ny = p.y + dy;
+
+        if (isValidMove(board, nx, ny)) {
+            p.x = nx;
+            p.y = ny;
+            // update score
+            board[nx][ny].isVisited = true;
+            board[nx][ny].bgColor = currentPlayer == 1 ? PLAYER1_BG : PLAYER2_BG;
+            switchPlayer();
+        } else {
+            cout << "Invalid move!" << endl;
+        }
+}
+
+void playGame(Cell** board) {
+    while (true) {
+        displayBoard(board);
+        Player& p = currentPlayer==1 ? p1 : p2;
+
+        if (!hasValidMoves(board,p.x, p.y)) {
+            cout << "No valid moves for Player " << currentPlayer << "! Game Over!" << endl;
+            cout << "Player 1 Score: " << p1.score << ", Player 2 Score: " << p2.score << endl;
+            cout << (p1.score > p2.score ? "Player 1 Wins!" : p1.score < p2.score ? "Player 2 Wins!" : "It's a Tie!") << endl;
+            
+        }
+
+        string direction;
+        cout << "Player " << currentPlayer << "'s turn. Enter move: (u, d, r, l, ur, ul, dr, dl): ";
+        cin >> direction;
+
+       makeMove(board, p, direction);
+    }
+}
 
 int main() {
     cout << "Enter the number of rows and columns: ";
@@ -129,8 +196,10 @@ int main() {
     p2.y = cols - 1;
     p2.score = 0;
     
-    Cell** board = initializeBoard(rows, cols);
-    displayBoard(board, rows, cols);
+    Cell** board = initializeBoard();
+    
+    playGame(board);
+    
     for (int i = 0; i < rows; i++) {
         delete[] board[i];
     }
