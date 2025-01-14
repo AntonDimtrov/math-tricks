@@ -132,7 +132,15 @@ bool hasValidMoves(Cell** board, int x, int y) {
     }
     return false;
 }
-
+int updateScore(int score, char operation, int value) {
+    switch (operation) {
+        case '+': return score + value;
+        case '-': return score - value;
+        case '*': return score * value;
+        case '/': return value != 0 ? score / value : score;
+        default: return score;
+    }
+}
 
 void makeMove(Cell** board, Player& p, string direction) {
 
@@ -153,7 +161,7 @@ void makeMove(Cell** board, Player& p, string direction) {
         if (isValidMove(board, nx, ny)) {
             p.x = nx;
             p.y = ny;
-            // update score
+            p.score = updateScore(p.score, board[nx][ny].operation, board[nx][ny].value);
             board[nx][ny].isVisited = true;
             board[nx][ny].bgColor = currentPlayer == 1 ? PLAYER1_BG : PLAYER2_BG;
             switchPlayer();
@@ -161,6 +169,7 @@ void makeMove(Cell** board, Player& p, string direction) {
             cout << "Invalid move!" << endl;
         }
 }
+
 
 void playGame(Cell** board) {
     while (true) {
@@ -171,7 +180,7 @@ void playGame(Cell** board) {
             cout << "No valid moves for Player " << currentPlayer << "! Game Over!" << endl;
             cout << "Player 1 Score: " << p1.score << ", Player 2 Score: " << p2.score << endl;
             cout << (p1.score > p2.score ? "Player 1 Wins!" : p1.score < p2.score ? "Player 2 Wins!" : "It's a Tie!") << endl;
-            
+            break;
         }
 
         string direction;
@@ -197,7 +206,7 @@ int main() {
     p2.score = 0;
     
     Cell** board = initializeBoard();
-    
+
     playGame(board);
     
     for (int i = 0; i < rows; i++) {
