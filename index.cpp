@@ -38,6 +38,11 @@ void resetColor() {
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), DEFAULT_TEXT);
 }
 
+
+void clearConsole() {
+    system("cls");
+}
+
 Cell** initializeBoard() {
     Cell** board = new Cell * [rows];
     for (int i = 0; i < rows; i++) {
@@ -169,6 +174,7 @@ void makeMove(Cell** board, Player& p, string direction) {
 
 void playGame(Cell** board) {
     while (true) {
+        clearConsole();
         displayBoard(board);
         Player& p = currentPlayer == 1 ? p1 : p2;
 
