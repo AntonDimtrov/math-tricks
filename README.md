@@ -6,7 +6,6 @@ This project is a simple two-player board game written in C++ for the **Introduc
 - [Description](#description)
 - [How to Play](#how-to-play)
 - [Features](#features)
-- [Build and Run](#build-and-run)
 - [Game Controls](#game-controls)
 - [Saving and Loading](#saving-and-loading)
 - [File Structure](#file-structure)
@@ -37,13 +36,32 @@ The game is set on a dynamically generated grid-based board where players take t
 
 ---
 
-## Build and Run
-### Prerequisites
-- A C++ compiler (e.g., Visual Studio, GCC)
-- Windows OS (for `windows.h` dependency)
 
-### Instructions
-1. Clone the repository:
-   ```bash
-   git clone <repository_url>
-   cd arithmetic-board-game
+## Game Controls
+Command	Description
+u	Move up
+d	Move down
+l	Move left
+r	Move right
+ur	Move up-right
+ul	Move up-left
+dr	Move down-right
+dl	Move down-left
+save	Save the game to savegame.txt
+load	Load the game from savegame.txt
+score	Display the current scores
+exit	Exit the game
+## Saving and Loading
+ - Save: Type save during the game to save the state to a file (savegame.txt).
+ - Load: Type load during the game to restore the game from the file.
+### Saved data includes:
+ - Player positions and scores.
+ - Current turn.
+ - Board state (operations, values, visited cells).
+## File Structure
+ - index.cpp: The main source file containing the game logic.
+ - savegame.txt: A file used for saving and loading the game state.
+## Author
+Anton Dimitrov
+
+
