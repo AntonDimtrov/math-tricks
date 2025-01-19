@@ -1,14 +1,14 @@
 #include <iostream>
+#include <fstream>
 #include <windows.h>
-
 using namespace std;
 
 // colors
-const int DEFAULT_BG = 0; // Black BG
-const int PLAYER1_BG = 1; // Blue BG
-const int PLAYER2_BG = 2; // Green BG
-const int RED_TEXT = 6;   // Red text
-const int DEFAULT_TEXT = 7; // White text
+const int DEFAULT_BG = 0; // black BG
+const int PLAYER1_BG = 1; // blue BG
+const int PLAYER2_BG = 2; // green BG
+const int RED_TEXT = 6;   // red text
+const int DEFAULT_TEXT = 7; // white text
 
 const char OPERATIONS[] = { '+', '-', '*', '/' };
 
@@ -38,7 +38,6 @@ void resetColor() {
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), DEFAULT_TEXT);
 }
 
-
 void clearConsole() {
     system("cls");
 }
@@ -57,6 +56,11 @@ Cell** initializeBoard() {
             board[i][j].bgColor = DEFAULT_BG;
         }
     }
+    board[0][0].value = 1;
+    board[0][0].operation = '*';
+    board[rows-1][cols-1].value = 1;
+    board[rows-1][cols-1].operation = '*';
+    
 
     // initial player positions
     board[p1.x][p1.y].isVisited = true;
@@ -132,6 +136,7 @@ bool hasValidMoves(Cell** board, int x, int y) {
     }
     return false;
 }
+
 int updateScore(int score, char operation, int value) {
     switch (operation) {
     case '+': return score + value;
@@ -142,32 +147,140 @@ int updateScore(int score, char operation, int value) {
     }
 }
 
-void makeMove(Cell** board, Player& p, string direction) {
-
-
-    int dx = 0, dy = 0;
-    if (direction == "u") dx = -1;
-    else if (direction == "d") dx = 1;
-    else if (direction == "r") dy = 1;
-    else if (direction == "l") dy = -1;
-    else if (direction == "ur") dx = -1, dy = 1;
-    else if (direction == "ul") dx = -1, dy = -1;
-    else if (direction == "dr") dx = 1, dy = 1;
-    else if (direction == "dl") dx = 1, dy = -1;
-
-    int nx = p.x + dx;
-    int ny = p.y + dy;
-
-    if (isValidMove(board, nx, ny)) {
-        p.x = nx;
-        p.y = ny;
-        p.score = updateScore(p.score, board[nx][ny].operation, board[nx][ny].value);
-        board[nx][ny].isVisited = true;
-        board[nx][ny].bgColor = currentPlayer == 1 ? PLAYER1_BG : PLAYER2_BG;
-        switchPlayer();
+void saveGame(const string& filename, Cell** board) {
+    ofstream outFile(filename);
+    if (!outFile) {
+        cerr << "Error opening file for saving!" << endl;
+        return;
     }
-    else {
-        cout << "Invalid move!" << endl;
+
+    // save turn
+    outFile << currentPlayer << endl;
+
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            int state;
+            if (p1.x == i && p1.y == j) {
+                state = 1; // player 1
+            }
+            else if (p2.x == i && p2.y == j) {
+                state = 2; // player 2
+            }
+            else if (board[i][j].bgColor == PLAYER1_BG) {
+                state = -1; // visited by player 1
+            }
+            else if (board[i][j].bgColor == PLAYER2_BG) {
+                state = -2; // visited by player 2
+            }
+            else {
+                state = 0; // unvisited cell
+            }
+            outFile << state << " ";
+        }
+        outFile << "\n";
+    }
+
+    outFile.close();
+}
+
+
+
+void loadGame(const string& filename, Cell** board) {
+    ifstream inFile(filename);
+    if (!inFile) {
+        cerr << "Error opening file for loading!" << endl;
+        return;
+    }
+
+    // load turn
+    inFile >> currentPlayer;
+
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            int state;
+            inFile >> state;
+            if (state == 1) {
+                board[i][j].isVisited = true;
+                p1.x = i;
+                p1.y = j;
+                board[i][j].bgColor = PLAYER1_BG;
+            }
+            else if (state == 2) {
+                board[i][j].isVisited = true;
+                p2.x = i;
+                p2.y = j;
+                board[i][j].bgColor = PLAYER2_BG;
+            }
+            else if (state == -1) {
+                board[i][j].isVisited = true;
+                board[i][j].bgColor = PLAYER1_BG;
+            }
+            else if (state == -2) {
+                board[i][j].isVisited = true;
+                board[i][j].bgColor = PLAYER2_BG;
+            }
+            else {
+                board[i][j].isVisited = false;
+                board[i][j].bgColor = DEFAULT_BG;
+            }
+        }
+    }
+
+
+    inFile.close();
+}
+
+    
+
+void makeMove(Cell**& board, Player& p) {
+    cout << "Player " << currentPlayer << "'s turn. Enter move: (u, d, r, l, ur, ul, dr, dl): ";
+    while (true) {
+        string direction;
+        cin >> direction;
+
+        if (direction == "save") {
+            saveGame("savegame.txt", board);
+            cout << "Game saved!" << endl;
+            Player& playerInTurn = currentPlayer == 1 ? p1 : p2;
+            makeMove(board, playerInTurn);
+            return;
+        }
+        else if (direction == "load") {
+            loadGame("savegame.txt", board);
+            clearConsole();
+            displayBoard(board);
+            cout << "Game loaded!" << endl;
+            Player& playerInTurn = currentPlayer == 1 ? p1 : p2;
+            makeMove(board, playerInTurn);
+            return;
+        }
+
+        // movement logic
+        int dx = 0, dy = 0;
+        if (direction == "u") dx = -1;
+        else if (direction == "d") dx = 1;
+        else if (direction == "r") dy = 1;
+        else if (direction == "l") dy = -1;
+        else if (direction == "ur") dx = -1, dy = 1;
+        else if (direction == "ul") dx = -1, dy = -1;
+        else if (direction == "dr") dx = 1, dy = 1;
+        else if (direction == "dl") dx = 1, dy = -1;
+
+        int nx = p.x + dx;
+        int ny = p.y + dy;
+
+        if (isValidMove(board, nx, ny)) {
+            p.x = nx;
+            p.y = ny;
+            p.score = updateScore(p.score, board[nx][ny].operation, board[nx][ny].value);
+            board[nx][ny].isVisited = true;
+            board[nx][ny].bgColor = currentPlayer == 1 ? PLAYER1_BG : PLAYER2_BG;
+            switchPlayer();
+            break;
+        }
+        else {
+            cout << "Invalid move! Try again: ";
+        }
     }
 }
 
@@ -185,11 +298,7 @@ void playGame(Cell** board) {
             break;
         }
 
-        string direction;
-        cout << "Player " << currentPlayer << "'s turn. Enter move: (u, d, r, l, ur, ul, dr, dl): ";
-        cin >> direction;
-
-        makeMove(board, p, direction);
+        makeMove(board, p);
     }
 }
 
