@@ -239,7 +239,11 @@ void makeMove(Cell**& board, Player& p) {
         string direction;
         cin >> direction;
 
-        if (direction == "save") {
+        if (direction == "exit") {
+            cout << "Exiting game..." << endl;
+            exit(0);
+        }
+        else if (direction == "save") {
             saveGame("savegame.txt", board);
             cout << "Game saved!" << endl;
             Player& playerInTurn = currentPlayer == 1 ? p1 : p2;
@@ -303,30 +307,70 @@ void playGame(Cell** board) {
     }
 }
 
-int main() {
-    srand(time(0));
-
+void startNewGame() {
     cout << "Enter the number of rows and columns: ";
     cin >> rows >> cols;
 
     // player one
-    p1.x = 0;
-    p1.y = 0;
-    p1.score = 0;
+    p1.x = 0; p1.y = 0; p1.score = 0;
 
     // player two
-    p2.x = rows - 1;
-    p2.y = cols - 1;
-    p2.score = 0;
+    p2.x = rows - 1; p2.y = cols - 1; p2.score = 0;
 
+    // initialize board
     Cell** board = initializeBoard();
 
     playGame(board);
 
-    for (int i = 0; i < rows; i++) {
+    for (int i = 0; i < rows; ++i) {
         delete[] board[i];
     }
     delete[] board;
+}
+
+void reloadGame() {
+    Cell** board = new Cell * [rows];
+    for (int i = 0; i < rows; ++i) {
+        board[i] = new Cell[cols];
+    }
+    loadGame("savegame.txt", board);
+    playGame(board);
+
+    for (int i = 0; i < rows; ++i) {
+        delete[] board[i];
+    }
+    delete[] board;
+}
+
+void showMenu() {
+    clearConsole();
+    cout << "=== Game Menu ===" << endl;
+    cout << "a. Start New Game" << endl;
+    cout << "b. Load Game" << endl;
+    cout << "c. Exit" << endl;
+    cout << "Choose an option: ";
+}
+
+int main() {
+    srand(time(0));
+
+    showMenu();
+
+    char choice;
+    cin >> choice;
+
+    if (choice == 'a') {
+        startNewGame();
+    }
+    else if (choice == 'b') {
+        reloadGame();
+    }
+    else if (choice == 'c') {
+        cout << "Exit successful" << endl;
+    }
+    else {
+        cout << "Invalid choice!" << endl;
+    }
 
     return 0;
 }
