@@ -383,21 +383,23 @@ int main() {
 
     showMenu();
 
-    char choice;
-    cin >> choice;
+    char choice =' ';
+    while (choice != 'a' && choice != 'b' && choice != 'c') {
+        cin >> choice;
 
-    if (choice == 'a') {
-        startNewGame();
+        if (choice == 'a') {
+            startNewGame();
+        }
+        else if (choice == 'b') {
+            reloadGame();
+        }
+        else if (choice == 'c') {
+            cout << "Exit successful" << endl;
+        }
+        else {
+            cout << "Invalid choice! Try again: ";
+        }
     }
-    else if (choice == 'b') {
-        reloadGame();
-    }
-    else if (choice == 'c') {
-        cout << "Exit successful" << endl;
-    }
-    else {
-        cout << "Invalid choice!" << endl;
-    }
-
+   
     return 0;
 }
