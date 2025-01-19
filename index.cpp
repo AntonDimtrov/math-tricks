@@ -59,9 +59,9 @@ Cell** initializeBoard() {
     }
     board[0][0].value = 1;
     board[0][0].operation = '*';
-    board[rows-1][cols-1].value = 1;
-    board[rows-1][cols-1].operation = '*';
-    
+    board[rows - 1][cols - 1].value = 1;
+    board[rows - 1][cols - 1].operation = '*';
+
 
     // initial player positions
     board[p1.x][p1.y].isVisited = true;
@@ -231,7 +231,7 @@ void loadGame(const string& filename, Cell** board) {
     inFile.close();
 }
 
-    
+
 
 void makeMove(Cell**& board, Player& p) {
     cout << "Player " << currentPlayer << "'s turn. Enter move: (u, d, r, l, ur, ul, dr, dl): ";
@@ -258,6 +258,11 @@ void makeMove(Cell**& board, Player& p) {
             Player& playerInTurn = currentPlayer == 1 ? p1 : p2;
             makeMove(board, playerInTurn);
             return;
+        }
+        else if (direction == "score") {
+            cout << "Player 1 score: " << p1.score << ", Player 2 score: " << p2.score << endl;
+            cout << "Enter move : (u, d, r, l, ur, ul, dr, dl) : ";
+            continue;
         }
 
         // movement logic
