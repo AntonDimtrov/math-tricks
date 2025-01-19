@@ -45,29 +45,73 @@ void clearConsole() {
 
 Cell** initializeBoard() {
     Cell** board = new Cell * [rows];
+
     for (int i = 0; i < rows; i++) {
         board[i] = new Cell[cols];
     }
+
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
-            int opIndex = rand() % 4;
-            board[i][j].operation = OPERATIONS[opIndex];
-            board[i][j].value = rand() % (10 + abs(rows / 2 - i) + abs(cols / 2 - j));
+            // distance from center
+            int distance = abs(rows/2 - i) + abs(cols/2 - j);
+
+            // larger values at shorter center distance
+            board[i][j].value = rand() % ((rows+cols)/2 - distance+1);
+
+            // operation probabilities
+            int randNum = rand() % 100; 
+            if (distance < (rows / 2 + 1)) { // near center
+                if (randNum < 35) { 
+                    board[i][j].operation = '+'; // 35% '+'
+                }
+                else if (randNum < 70) {  // 35% '*'
+                    board[i][j].operation = '*';
+                }
+                else if (randNum < 85){ // 15% '-'
+                    board[i][j].operation = '-';
+                }
+                else { 
+                    board[i][j].operation = '/'; // 15% '-'
+                }
+            }
+            else { // far from center
+                if (randNum < 25) {
+                    board[i][j].operation = '+'; // 25% '+'
+                }
+                else if (randNum < 50) { 
+                    board[i][j].operation = '*'; // 25% '*'
+                }
+                else if (randNum < 75) {
+                    board[i][j].operation = '-'; // 25% '-'
+                }
+                else { 
+                    board[i][j].operation = '/'; // 25% '/'
+                }
+            }         
+
+            // no division by zero
+            if (board[i][j].operation == '/') {
+                board[i][j].value = max(1, board[i][j].value);
+            }
+
+            // no minus zero
+            if (board[i][j].operation == '-' && board[i][j].value == 0) {
+                board[i][j].operation == '+';
+            }
+
+            // multiplication by max 4
+            if (board[i][j].operation == '*') {
+                board[i][j].value = min(board[i][j].value, 4);
+            }
+
             board[i][j].isVisited = false;
             board[i][j].bgColor = DEFAULT_BG;
         }
     }
-    board[0][0].value = 1;
-    board[0][0].operation = '*';
-    board[rows - 1][cols - 1].value = 1;
-    board[rows - 1][cols - 1].operation = '*';
 
-    // initial player positions
-    board[p1.x][p1.y].isVisited = true;
-    board[p1.x][p1.y].bgColor = PLAYER1_BG;
+    board[0][0] = { '*', 1, true, PLAYER1_BG };
+    board[rows - 1][cols - 1] = { '*', 1, true, PLAYER2_BG };
 
-    board[p2.x][p2.y].isVisited = true;
-    board[p2.x][p2.y].bgColor = PLAYER2_BG;
     return board;
 }
 
@@ -352,14 +396,17 @@ void startNewGame() {
     for (int i = 0; i < rows; ++i) {
         delete[] board[i];
     }
+
     delete[] board;
 }
 
 void reloadGame() {
     Cell** board = new Cell * [rows];
+
     for (int i = 0; i < rows; ++i) {
         board[i] = new Cell[cols];
     }
+
     loadGame("savegame.txt", board);
     playGame(board);
 
