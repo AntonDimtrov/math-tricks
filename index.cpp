@@ -62,7 +62,6 @@ Cell** initializeBoard() {
     board[rows - 1][cols - 1].value = 1;
     board[rows - 1][cols - 1].operation = '*';
 
-
     // initial player positions
     board[p1.x][p1.y].isVisited = true;
     board[p1.x][p1.y].bgColor = PLAYER1_BG;
@@ -155,8 +154,13 @@ void saveGame(const string& filename, Cell** board) {
         return;
     }
 
+    outFile << rows << " " << cols << endl;
+
     // save turn
     outFile << currentPlayer << endl;
+
+    // save scores
+    outFile << p1.score << " " << p2.score << endl;
 
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
@@ -176,7 +180,9 @@ void saveGame(const string& filename, Cell** board) {
             else {
                 state = 0; // unvisited cell
             }
-            outFile << state << " ";
+
+            // save cell info
+            outFile << state << " " << board[i][j].operation << " " << board[i][j].value << " ";
         }
         outFile << "\n";
     }
@@ -185,21 +191,34 @@ void saveGame(const string& filename, Cell** board) {
 }
 
 
-
-void loadGame(const string& filename, Cell** board) {
+void loadGame(const string& filename, Cell**& board) {
     ifstream inFile(filename);
     if (!inFile) {
         cerr << "Error opening file for loading!" << endl;
         return;
     }
 
+    inFile >> rows >> cols;
+
+    board = new Cell * [rows];
+    for (int i = 0; i < rows; i++) {
+        board[i] = new Cell[cols];
+    }
+
     // load turn
     inFile >> currentPlayer;
 
+    // load scores
+    inFile >> p1.score >> p2.score;
+
+    // load board 
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
             int state;
-            inFile >> state;
+            char operation;
+            int value;
+            inFile >> state >> operation >> value;
+
             if (state == 1) {
                 board[i][j].isVisited = true;
                 p1.x = i;
@@ -224,9 +243,12 @@ void loadGame(const string& filename, Cell** board) {
                 board[i][j].isVisited = false;
                 board[i][j].bgColor = DEFAULT_BG;
             }
+
+            // load cell info
+            board[i][j].operation = operation;
+            board[i][j].value = value;
         }
     }
-
 
     inFile.close();
 }
