@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <windows.h>
+#include <ctime>
 using namespace std;
 
 // colors
@@ -303,6 +304,8 @@ void playGame(Cell** board) {
 }
 
 int main() {
+    srand(time(0));
+
     cout << "Enter the number of rows and columns: ";
     cin >> rows >> cols;
 
