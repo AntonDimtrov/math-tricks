@@ -1,3 +1,15 @@
+/**
+* 
+* Solution to course project # 2
+* Introduction to programming course
+* Faculty of Mathematics and Informatics of Sofia University
+* Winter semester 2023 / 2024
+* 
+* @author Anton Dimitrov
+* @idnumber 4MI0600479* @compiler VC
+* 
+**/
+
 #include <iostream>
 #include <fstream>
 #include <windows.h>
@@ -8,7 +20,7 @@ using namespace std;
 const int DEFAULT_BG = 0; // black BG
 const int PLAYER1_BG = 1; // blue BG
 const int PLAYER2_BG = 2; // green BG
-const int RED_TEXT = 6;   // red text
+const int PLAYER_TEXT = 6; // yellow text
 const int DEFAULT_TEXT = 7; // white text
 
 const char OPERATIONS[] = { '+', '-', '*', '/' };
@@ -96,7 +108,7 @@ Cell** initializeBoard() {
 
             // no minus zero
             if (board[i][j].operation == '-' && board[i][j].value == 0) {
-                board[i][j].operation == '+';
+                board[i][j].operation = '+';
             }
 
             // multiplication by max 4
@@ -109,8 +121,8 @@ Cell** initializeBoard() {
         }
     }
 
-    board[0][0] = { '*', 1, true, PLAYER1_BG };
-    board[rows - 1][cols - 1] = { '*', 1, true, PLAYER2_BG };
+    board[0][0] = { ' ', 0, true, PLAYER1_BG };
+    board[rows - 1][cols - 1] = { ' ', 0, true, PLAYER2_BG };
 
     return board;
 }
@@ -139,11 +151,11 @@ void displayBoard(Cell** board) {
             cout << "|";
 
             if (p1.x == i && p1.y == j) {
-                setColor(PLAYER1_BG, RED_TEXT);
+                setColor(PLAYER1_BG, PLAYER_TEXT);
                 cout << "  P1  ";
             }
             else if (p2.x == i && p2.y == j) {
-                setColor(PLAYER2_BG, RED_TEXT);
+                setColor(PLAYER2_BG, PLAYER_TEXT);
                 cout << "  P2  ";
             }
             else if (board[i][j].isVisited) {
@@ -235,11 +247,11 @@ void saveGame(const string& filename, Cell** board) {
 }
 
 
-void loadGame(const string& filename, Cell**& board) {
+bool loadGame(const string& filename, Cell**& board) {
     ifstream inFile(filename);
     if (!inFile) {
         cerr << "Error opening file for loading!" << endl;
-        return;
+        return false;
     }
 
     inFile >> rows >> cols;
@@ -295,6 +307,7 @@ void loadGame(const string& filename, Cell**& board) {
     }
 
     inFile.close();
+    return true;
 }
 
 
@@ -378,9 +391,15 @@ void playGame(Cell** board) {
     }
 }
 
-void startNewGame() {
+bool startNewGame() {
     cout << "Enter the number of rows and columns: ";
     cin >> rows >> cols;
+
+
+    if (rows < 4 || cols < 4) {
+        cout << "Size must be atleast 4x4!" << endl;
+        return false;
+    }
 
     // player one
     p1.x = 0; p1.y = 0; p1.score = 0;
@@ -393,27 +412,35 @@ void startNewGame() {
 
     playGame(board);
 
+
     for (int i = 0; i < rows; ++i) {
         delete[] board[i];
     }
-
     delete[] board;
+
+    return true;
 }
 
-void reloadGame() {
+bool reloadGame() {
     Cell** board = new Cell * [rows];
 
-    for (int i = 0; i < rows; ++i) {
-        board[i] = new Cell[cols];
-    }
+    bool savedGameLoaded;
 
-    loadGame("savegame.txt", board);
-    playGame(board);
+    if (loadGame("savegame.txt", board)) {
+        playGame(board); 
+        savedGameLoaded = true;
+    }
+    else {
+        cout << "No game saved!" << endl << endl;
+        savedGameLoaded = false;
+    }
 
     for (int i = 0; i < rows; ++i) {
         delete[] board[i];
     }
     delete[] board;
+
+    return savedGameLoaded;
 }
 
 void showMenu() {
@@ -421,7 +448,7 @@ void showMenu() {
     cout << "=== Game Menu ===" << endl;
     cout << "a. Start New Game" << endl;
     cout << "b. Load Game" << endl;
-    cout << "c. Exit" << endl;
+    cout << "c. Exit" << endl << endl;
     cout << "Choose an option: ";
 }
 
@@ -435,13 +462,19 @@ int main() {
         cin >> choice;
 
         if (choice == 'a') {
-            startNewGame();
+            if (!startNewGame()) {
+                startNewGame();
+            }
         }
         else if (choice == 'b') {
-            reloadGame();
+            if (!reloadGame()) {
+                cout << "Starting a new game..." << endl << endl;
+                
+                startNewGame();
+            }
         }
         else if (choice == 'c') {
-            cout << "Exit successful" << endl;
+            cout << "Exiting game..." << endl;
         }
         else {
             cout << "Invalid choice! Try again: ";
