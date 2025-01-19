@@ -121,8 +121,8 @@ Cell** initializeBoard() {
         }
     }
 
-    board[0][0] = { ' ', 0, true, PLAYER1_BG };
-    board[rows - 1][cols - 1] = { ' ', 0, true, PLAYER2_BG };
+    board[0][0] = { '+', 0, true, PLAYER1_BG };
+    board[rows - 1][cols - 1] = { '+', 0, true, PLAYER2_BG };
 
     return board;
 }
